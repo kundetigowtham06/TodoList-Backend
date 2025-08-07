@@ -9,10 +9,7 @@ app.use(express.json())
 
 app.get('/',async (req,res)=>{
     const todos=await todo.find();
-    res.json(todos);
-    
-
-    
+    res.json(todos);  
 })
 app.post('/add',async (req,res)=>{
     const {text}=req.body;
