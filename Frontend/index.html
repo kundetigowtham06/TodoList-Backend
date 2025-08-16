@@ -64,13 +64,10 @@
         });
         let jsondata= await data.json();
         jsondata.map(item=>{
-            todos.push({text:item.text});
+            todos.push({id: item._id, text:item.text});
             return todos;
         })
         renderTodos();
-        
-        
-
     })
 
     function renderTodos() {
@@ -102,19 +99,53 @@
     async function addTodo() {
       const todo=document.getElementById("todo-input");
       const text=todo.value;
-     await fetch('http://localhost:3000/add',{
-        method:"POST",
-        headers:{
-            'Content-Type':'application/json'
-        },
-        body:JSON.stringify({text})
-     });
-     
+      if(text.trim() === '') return;
+      
+      try {
+        const response = await fetch('http://localhost:3000/add',{
+            method:"POST",
+            headers:{
+                'Content-Type':'application/json'
+            },
+            body:JSON.stringify({text})
+        });
+        
+        if(response.ok) {
+            const data = await fetch('http://localhost:3000', {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const jsondata = await data.json();
+            todos = jsondata.map(item => ({id: item._id, text: item.text}));
+            renderTodos();
+            todo.value = '';
+        }
+      } catch (error) {
+        console.error("Error adding todo:", error);
+      }
     }
 
-    function deleteTodo(index) {
-      todos.splice(index, 1);
-      renderTodos();
+    async function deleteTodo(index) {
+      try {
+        const todoToDelete = todos[index];
+        const response = await fetch(`http://localhost:3000/delete/${todoToDelete.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if(response.ok) {
+          todos.splice(index, 1);
+          renderTodos();
+        } else {
+          console.error("Failed to delete todo");
+        }
+      } catch (error) {
+        console.error("Error deleting todo:", error);
+      }
     }
 
     function editTodo(index) {
